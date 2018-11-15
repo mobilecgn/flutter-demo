@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../api/search.dart';
 import 'login.dart';
 
 class SearchForm extends StatefulWidget {
@@ -8,11 +9,18 @@ class SearchForm extends StatefulWidget {
 }
 
 class _SearchFormState extends State<SearchForm> {
+  SearchResult result = null;
+
   void logout() {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => LoginForm()),
     );
+  }
+
+  void doSearch(String search) async {
+    result = await UnsplashApi.search(search);
+    setState(() {});
   }
 
   @override
@@ -26,7 +34,7 @@ class _SearchFormState extends State<SearchForm> {
                 color: Colors.white,
                 fontSize: 17.0,
               ),
-              keyboardType: TextInputType.emailAddress,
+              keyboardType: TextInputType.text,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                   border: InputBorder.none,
@@ -40,6 +48,7 @@ class _SearchFormState extends State<SearchForm> {
               onEditingComplete: () {},
               onFieldSubmitted: (String textInput) {
                 FocusScope.of(context).requestFocus(new FocusNode());
+                doSearch(textInput);
               },
             ),
           ),
@@ -53,12 +62,39 @@ class _SearchFormState extends State<SearchForm> {
             ),
           ],
         ),
-        body: Builder(builder: (BuildContext innerContext) {
-          return buildForm();
-        }));
+        body: buildForm());
   }
 
   Widget buildForm() {
-    return Container();
+    if (result == null) {
+      return Container();
+    }
+    return ImagesList(photos: result.results);
+  }
+}
+
+class ImagesList extends StatelessWidget {
+  final List<Photo> photos;
+
+  ImagesList({Key key, this.photos}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        new Expanded(child: _buildList(context)),
+      ],
+    );
+  }
+
+  //Showing the images in listview
+  ListView _buildList(context) {
+    return new ListView.builder(
+        itemCount: photos.length,
+        itemBuilder: (context, int) {
+          return Image.network(photos[int].smallUrl);
+        });
   }
 }
