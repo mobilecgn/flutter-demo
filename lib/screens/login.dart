@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,13 +40,38 @@ class _LoginFormState extends State<LoginForm> {
     });
   }
 
-  void login() {}
+  void login() {
+    if (usernameController.text.isEmpty) {
+      if (Platform.isIOS) {
+        showErrorAlert("Username must not be empty");
+        return;
+      }
+      showError("Username must not be empty");
+      return;
+    }
+    if (passwordController.text.isEmpty) {
+      showErrorAlert("Password must not be empty");
+      return;
+    }
+    openNext();
+  }
 
-  void openNext() {
+  void openNext() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("username", usernameController.text);
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => SearchForm()),
     );
+  }
+
+  void showErrorAlert(String error) {
+    showPlatformDialog(title: new Text("Error"), content: new Text(error), actions: <Widget>[
+      new FlatButton(
+        onPressed: () => Navigator.of(context).pop(false),
+        child: new Text("OK"),
+      ),
+    ]);
   }
 
   void showError(String error) {
@@ -53,85 +81,130 @@ class _LoginFormState extends State<LoginForm> {
     ));
   }
 
+  Future<bool> showPlatformDialog({Widget title, Widget content, List<Widget> actions}) {
+    Widget dialog;
+    if (Platform.isAndroid) {
+      dialog = AlertDialog(title: title, content: content, actions: actions);
+    } else if (Platform.isIOS) {
+      dialog = CupertinoAlertDialog(title: title, content: content, actions: actions);
+    }
+    return showDialog(context: context, builder: (context) => dialog);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (Platform.isIOS) {
+      return buildiOS();
+    }
+    return buildAndroid();
+  }
+
+  Widget buildiOS() {
+    return CupertinoPageScaffold(
+        navigationBar: const CupertinoNavigationBar(
+          backgroundColor: Color.fromRGBO(224, 31, 31, 1.0),
+        ),
+        child: SafeArea(
+            top: false,
+            bottom: false,
+            child: Material(
+              child: buildForm(),
+            )));
+  }
+
+  Widget buildAndroid() {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
-      body: Builder(builder: (BuildContext innerContext) {
-        _scaffoldContext = innerContext;
-        return Positioned(
-          top: 0.0,
-          bottom: 0.0,
-          left: 0.0,
-          right: 0.0,
-          child: ListView(
-            children: <Widget>[
-              SizedBox(
-                height: 50.0,
-              ),
-              Center(
-                child: Container(
-                  constraints: BoxConstraints(
-                    minWidth: 150.0,
-                    maxWidth: 250.0,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                      color: Colors.grey,
-                    )),
-                    child: Column(
-                      children: <Widget>[
-                        Form(
-                          child: Column(
-                            children: <Widget>[
-                              Container(
-                                padding: EdgeInsets.all(10.0),
-                                child: TextFormField(
-                                  controller: usernameController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  textInputAction: TextInputAction.next,
-                                  decoration: InputDecoration(labelText: "Benutzername"),
-                                  onEditingComplete: () {},
-                                  onFieldSubmitted: (String textInput) {
-                                    FocusScope.of(context).requestFocus(focusNode);
-                                  },
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.all(10.0),
-                                child: TextFormField(
-                                  controller: passwordController,
-                                  focusNode: focusNode,
-                                  obscureText: true,
-                                  keyboardType: TextInputType.text,
-                                  textInputAction: TextInputAction.send,
-                                  decoration: InputDecoration(labelText: "Password"),
-                                  onFieldSubmitted: (value) {
-                                    login();
-                                  },
-                                ),
-                              ),
-                              MaterialButton(
-                                child: Text("Login"),
-                                onPressed: () {
-                                  login();
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-            ],
+        appBar: AppBar(
+          title: Text('Login'),
+        ),
+        body: Builder(builder: (BuildContext innerContext) {
+          _scaffoldContext = innerContext;
+          return buildForm();
+        }));
+  }
+
+  Widget buildForm() {
+    return Container(
+      color: Colors.white,
+      child: ListView(
+        children: <Widget>[
+          SizedBox(
+            height: 50.0,
           ),
-        );
-      }),
+          Center(
+            child: Container(
+              padding: EdgeInsets.all(10.0),
+              constraints: BoxConstraints(
+                minWidth: 250.0,
+                maxWidth: 450.0,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                    border: Border.all(
+                  color: Colors.grey,
+                )),
+                child: Column(
+                  children: <Widget>[
+                    Form(
+                      child: Column(
+                        children: <Widget>[
+                          Container(
+                            padding: EdgeInsets.all(10.0),
+                            child: Image.asset(
+                              'assets/mobilecgn_logo.png',
+                              width: 200.0,
+                              fit: BoxFit.fitHeight,
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(10.0),
+                            child: TextFormField(
+                              controller: usernameController,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(labelText: "Username"),
+                              onEditingComplete: () {},
+                              onFieldSubmitted: (String textInput) {
+                                FocusScope.of(context).requestFocus(focusNode);
+                              },
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(10.0),
+                            child: TextFormField(
+                              controller: passwordController,
+                              focusNode: focusNode,
+                              obscureText: true,
+                              keyboardType: TextInputType.text,
+                              textInputAction: TextInputAction.send,
+                              decoration: InputDecoration(labelText: "Password"),
+                              onFieldSubmitted: (value) {
+                                login();
+                              },
+                            ),
+                          ),
+                          MaterialButton(
+                            child: Text(
+                              "Login",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 17.0,
+                              ),
+                            ),
+                            onPressed: () {
+                              login();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 }
