@@ -1,3 +1,6 @@
+# Own
+/lib/api/config.dart
+
 # Miscellaneous
 *.class
 *.lock

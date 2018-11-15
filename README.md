@@ -4,5 +4,14 @@ mobile.cologne Flutter Demo
 
 ## Getting Started
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+Rename the file
+
+/lib/api/config.rename.dart
+
+to
+
+/lib/api/config.dart
+
+The project is using the unsplash-API. To use this part, register as developer under https://unsplash.com/ and put your Api-Key into the file
+
+/lib/api/config.dart
