@@ -41,7 +41,7 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void login() {
-    if (usernameController.text.isEmpty) {
+    if (usernameController.text == "") {
       if (Platform.isIOS) {
         showErrorAlert("Username must not be empty");
         return;
@@ -49,7 +49,7 @@ class _LoginFormState extends State<LoginForm> {
       showError("Username must not be empty");
       return;
     }
-    if (passwordController.text.isEmpty) {
+    if (passwordController.text == "") {
       showErrorAlert("Password must not be empty");
       return;
     }
@@ -65,6 +65,13 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
+  void showError(String error) {
+    Scaffold.of(_scaffoldContext).showSnackBar(new SnackBar(
+      content: new Text(error),
+      backgroundColor: Colors.red,
+    ));
+  }
+
   void showErrorAlert(String error) {
     showPlatformDialog(title: new Text("Error"), content: new Text(error), actions: <Widget>[
       new FlatButton(
@@ -72,13 +79,6 @@ class _LoginFormState extends State<LoginForm> {
         child: new Text("OK"),
       ),
     ]);
-  }
-
-  void showError(String error) {
-    Scaffold.of(_scaffoldContext).showSnackBar(new SnackBar(
-      content: new Text(error),
-      backgroundColor: Colors.red,
-    ));
   }
 
   Future<bool> showPlatformDialog({Widget title, Widget content, List<Widget> actions}) {
